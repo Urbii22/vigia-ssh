@@ -1,0 +1,12 @@
+# Datos locales de ejecución (historial, ajustes con URLs de webhook, simulación, logs)
+datos/
+estado.json
+*.tmp
+
+# Ficheros generados en pruebas
+muestra_ssh.jsonl
+alertas_recibidas.jsonl
+
+# Python
+__pycache__/
+*.pyc

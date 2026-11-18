@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vigía SSH</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3 5 7v8c0 7 4.7 12 11 14 6.3-2 11-7 11-14V7z' fill='%230F766E'/%3E%3Ccircle cx='16' cy='15' r='4' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="estilo.css">
+  <script>
+    try {
+      const t = localStorage.getItem('vigia-tema');
+      if (t === 'oscuro' || (!t && matchMedia('(prefers-color-scheme: dark)').matches))
+        document.documentElement.classList.add('oscuro');
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="barra">
+    <div class="marca">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 5 7v8c0 7 4.7 12 11 14 6.3-2 11-7 11-14V7z"/><circle cx="16" cy="15" r="4"/></svg>
+      <span>Vigía</span><small>SSH</small>
+      <span class="insignia-sim" id="insigniaSim" hidden>Simulación</span>
+    </div>
+    <div class="barra-centro">
+      <span class="dato"><span class="etq">Equipo</span> <b id="host">—</b></span>
+      <span class="dato"><span class="etq">Fuente</span> <b id="fuente">—</b></span>
+      <span class="dato"><span class="etq">Servicio SSH</span> <b id="ssh">—</b></span>
+      <span class="dato"><span class="etq">Conexión</span> <b id="conexion">—</b></span>
+    </div>
+    <div class="barra-acciones">
+      <span class="estado-motor" id="estadoMotor"><i></i><span>—</span></span>
+      <button class="btn" id="btnMotor">—</button>
+      <button class="btn-icono" id="btnTema" title="Cambiar tema" aria-label="Cambiar tema">
+        <svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div id="avisos"></div>
+
+  <main>
+    <section class="kpis">
+      <article class="kpi">
+        <span class="kpi-etq">Intentos fallidos</span>
+        <span class="kpi-valor" id="kpiFallos">0</span>
+        <span class="kpi-pie">última hora</span>
+      </article>
+      <article class="kpi">
+        <span class="kpi-etq">IPs de origen</span>
+        <span class="kpi-valor" id="kpiIps">0</span>
+        <span class="kpi-pie">con algún fallo en la última hora</span>
+      </article>
+      <article class="kpi">
+        <span class="kpi-etq">Alertas</span>
+        <span class="kpi-valor" id="kpiAlertas">0</span>
+        <span class="kpi-pie" id="kpiAlertasPie">últimas 24 h</span>
+      </article>
+      <article class="kpi">
+        <span class="kpi-etq">Accesos correctos</span>
+        <span class="kpi-valor" id="kpiAccesos">0</span>
+        <span class="kpi-pie" id="kpiAccesosPie">última hora</span>
+      </article>
+    </section>
+
+    <section class="rejilla">
+      <article class="tarjeta">
+        <header><h2>Intentos fallidos por minuto</h2><span class="sub">últimos 60 minutos</span></header>
+        <div id="grafico" class="grafico"></div>
+      </article>
+      <article class="tarjeta">
+        <header><h2>Principales orígenes</h2><span class="sub">última hora</span></header>
+        <ol id="top" class="top"></ol>
+      </article>
+    </section>
+
+    <article class="tarjeta">
+      <header>
+        <h2>Alertas</h2>
+        <span class="sub" id="alertasSub"></span>
+        <div class="header-acciones">
+          <button class="btn btn-sec" id="btnPrueba">Enviar alerta de prueba</button>
+          <button class="btn btn-texto" id="btnVaciar">Vaciar historial</button>
+        </div>
+      </header>
+      <div class="tabla-envoltorio">
+        <table class="tabla">
+          <thead><tr><th>Hora</th><th>IP de origen</th><th>Intentos</th><th>Usuarios probados</th><th>Severidad</th><th>Canal</th><th></th></tr></thead>
+          <tbody id="alertas"></tbody>
+        </table>
+      </div>
+    </article>
+
+    <section class="rejilla">
+      <article class="tarjeta">
+        <header><h2>Actividad en directo</h2><span class="sub">cada intento SSH, según llega</span></header>
+        <ul id="feed" class="feed"></ul>
+      </article>
+
+      <article class="tarjeta">
+        <header><h2>Ajustes</h2></header>
+        <form id="formConfig" class="form">
+          <label>Fuente de datos
+            <select name="fuente">
+              <option value="journal">Registro SSH real (journalctl)</option>
+              <option value="simulacion">Simulación (ataques ficticios)</option>
+            </select></label>
+          <div class="campos">
+            <label>Umbral <span class="ayuda">fallos para alertar</span>
+              <input type="number" name="umbral" min="1" max="1000" required></label>
+            <label>Ventana <span class="ayuda">minutos</span>
+              <input type="number" name="ventana" min="1" max="1440" required></label>
+          </div>
+          <label>Webhook externo <span class="ayuda">opcional: copia de cada alerta (p. ej. webhook.site)</span>
+            <input type="url" name="webhook_externo" placeholder="https://…" spellcheck="false"></label>
+          <label class="check"><input type="checkbox" name="autoarranque"> Vigilar al abrir la consola</label>
+          <div class="form-pie"><button class="btn" type="submit">Guardar</button>
+            <span class="ayuda">Al guardar, el motor se reinicia con los nuevos valores.</span></div>
+        </form>
+
+        <div class="bloque" id="bloqueSim">
+          <h3>Simulador de ataques <span class="ayuda">≈ 2 min · varias IPs atacantes</span></h3>
+          <p class="ayuda texto-sim">Fuerza bruta, diccionario de usuarios, un atacante que consigue entrar (crítica),
+            un escáner lento bajo el umbral y la repetición de un ataque (anti-duplicados).</p>
+          <div class="form-pie">
+            <button class="btn btn-sec" id="btnSim" type="button">Lanzar simulación</button>
+            <span class="ayuda" id="simAyuda"></span>
+          </div>
+        </div>
+
+        <div class="bloque">
+          <h3>Lista blanca <span class="ayuda">IPs que nunca generan alerta</span></h3>
+          <div id="blanca" class="chips"></div>
+          <form id="formBlanca" class="en-linea">
+            <input name="ip" placeholder="Añadir IP (p. ej. 10.0.3.1)" spellcheck="false" required>
+            <button class="btn btn-sec" type="submit">Añadir</button>
+          </form>
+        </div>
+
+        <div class="bloque">
+          <h3>Anti-duplicados <span class="ayuda" id="silencioAyuda"></span></h3>
+          <ul id="silenciadas" class="lista-simple"></ul>
+          <button class="btn btn-texto" id="btnSilencio">Reiniciar memoria</button>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="pie">Vigía SSH · motor <code>vigia_ssh.sh</code> · consola local en 127.0.0.1</footer>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

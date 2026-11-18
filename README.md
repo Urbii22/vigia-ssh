@@ -270,6 +270,7 @@ El simulador también se puede lanzar a mano, con la consola en modo Simulación
 | `lista_corta.txt` | contraseñas de prueba para hydra |
 | `estado.json` | *(se crea solo)* IPs avisadas y cuándo |
 | `datos/` | *(se crea sola)* historial de alertas, ajustes, simulación y registros del motor |
+| `video/` | anuncio de ~1 min del proyecto hecho con Remotion (ver `video/README.md`) |
 | `receptor_alertas.py` | receptor de alertas mínimo de las primeras pruebas; ya no hace falta |
 
 Para empezar totalmente de cero, con la consola parada: `rm -rf datos estado.json`.

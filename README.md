@@ -4,6 +4,8 @@
 
 Cuando alguien intenta entrar en tu máquina por SSH probando contraseñas una y otra vez, Vigía SSH lo detecta, avisa **una sola vez** (sin llenarte de alertas repetidas) y te enseña en una página web qué está pasando: quién ataca, con qué usuarios lo intenta y si ha conseguido entrar.
 
+🎬 **[Ver el vídeo-anuncio (59 s)](https://github.com/Urbii22/vigia-ssh/releases/download/v1.0/vigia-ssh-anuncio.mp4)**
+
 > Proyecto del Ejercicio 3 (detector de fuerza bruta SSH con alertas). Uso exclusivo en el laboratorio y con permiso.
 
 ---
